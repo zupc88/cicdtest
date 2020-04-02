@@ -1,6 +1,11 @@
+<<<<<<< HEAD
 server1
 <<<<<<< HEAD
 server2
 =======
 web1
 >>>>>>> 0c27c1f772eea69236ce191b6dc4aea7aa42526a
+=======
+tst
+server2
+>>>>>>> dev
