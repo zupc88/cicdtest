@@ -160,7 +160,7 @@ mvn spring-boot:run
 ## DDD 의 적용
 
 - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 Buy 마이크로 서비스). 
-
+```
 package bookrental;
 
 import javax.persistence.*;
@@ -235,8 +235,6 @@ public class Buy {
         this.qty = qty;
     }
 }
-
-
 ```
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
 ```
