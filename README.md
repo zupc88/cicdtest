@@ -259,7 +259,8 @@ public interface StockRepository extends CrudRepository<Stock, Long>{
 // 재고 서비스에서 입고 정보 내역 결과 자동 출력
 아래 이미지 참조
 ```
-- 재고 서비스에 아래와 같이 재고 입고 확인
+재고 서비스에 아래와 같이 재고 입고 확인
+
 ![r1](https://user-images.githubusercontent.com/53555895/81884702-8463ea00-95d3-11ea-93ea-27178404ef9a.PNG)
 ![r2](https://user-images.githubusercontent.com/53555895/81884749-a6f60300-95d3-11ea-88a0-65a00c229590.PNG)
 
