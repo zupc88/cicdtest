@@ -94,7 +94,7 @@
 - 각 Aggregte Attribute
   - reservation : orderid, userid, bookid, status
   - stock : bookid, qty
-
+  - buy : bookid, qty
 
 ### 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 
