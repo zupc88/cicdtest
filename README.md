@@ -157,130 +157,6 @@ mvn spring-boot:run
 ```
 
 
-## DDD 의 적용(개인 과제)
-
-- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 Buy 마이크로 서비스). 
-```
-package bookrental;
-
-import javax.persistence.*;
-
-import bookrental.config.kafka.KafkaProcessor;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
-import org.springframework.beans.BeanUtils;
-import org.springframework.messaging.MessageChannel;
-import org.springframework.messaging.MessageHeaders;
-import org.springframework.messaging.support.MessageBuilder;
-import org.springframework.util.MimeTypeUtils;
-
-import java.util.List;
-
-@Entity
-@Table(name="Buy_table")
-public class Buy {
-
-    @Id
-    @GeneratedValue(strategy=GenerationType.AUTO)
-    private Long id;
-    private String bookid;
-    private Long qty;
-
-    @PostPersist
-    public void onPostPersist(){
-        Boughtbook boughtbook = new Boughtbook();
-        boughtbook.setId(this.getId());
-        boughtbook.setBookid(this.getBookid());
-        boughtbook.setQty(this.getQty());
-        ObjectMapper objectMapper = new ObjectMapper();
-        String json = null;
-
-        try {
-            json = objectMapper.writeValueAsString(boughtbook);
-        } catch (JsonProcessingException e) {
-            throw new RuntimeException("JSON format exception", e);
-        }
-
-
-        KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
-        MessageChannel outputChannel = processor.outboundTopic();
-
-        outputChannel.send(MessageBuilder
-                .withPayload(json)
-                .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
-                .build());
-
-    }
-
-
-    public Long getId() {
-        return id;
-    }
-
-    public void setId(Long id) {
-        this.id = id;
-    }
-    public String getBookid() {
-        return bookid;
-    }
-
-    public void setBookid(String bookid) {
-        this.bookid = bookid;
-    }
-    public Long getQty() {
-        return qty;
-    }
-
-    public void setQty(Long qty) {
-        this.qty = qty;
-    }
-}
-```
-- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
-```
-package bookrental;
-
-import org.springframework.data.repository.CrudRepository;
-import java.util.Optional;
-
-public interface StockRepository extends CrudRepository<Stock, Long>{
-    Optional<Stock> findByBookid(String BookId);    # bookid로 찾기 위해 선언
-}
-```
-- 적용 후 REST API 의 테스트 (도서 구매)
-```
-성공 케이스
-// 구매 서비스에서 도서 구매 후  입고
-1. http POST localhost:8084/buys  bookid="14" qty=55
-
-// 재고 서비스에서 입고된 책 내역 확인
-2. http GET localhost:8082/stocks 
-
-// 재고 서비스에서 입고 정보 내역 결과 자동 출력
-아래 이미지 참조
-```
-재고 서비스에 아래와 같이 재고 입고 확인
-
-![r1](https://user-images.githubusercontent.com/53555895/81884702-8463ea00-95d3-11ea-93ea-27178404ef9a.PNG)
-![r2](https://user-images.githubusercontent.com/53555895/81884749-a6f60300-95d3-11ea-88a0-65a00c229590.PNG)
-
-
-- 적용 후 REST API 의 테스트 (도서 구매 검토 요청)
-```
-// 재고가 없는 도서 생성
-1. http POST localhost:8084/buys  bookid="15" qty=0
-
-// 재고가 없는 도서 주문
-2. http POST localhost:8081/reservations bookid="15"  
-
-// 재고 서비스에서 재고 부족한 도서 결과 자동 출력
-아래 이미지 참조
-```
-구매 서비스에 아래와 같이 재고 부족에 따른 구매 검토 요청 확인
-
-![r3](https://user-images.githubusercontent.com/53555895/81885298-086aa180-95d5-11ea-8d4f-664a1b8eac58.PNG)
-
-
 
 ## DDD 의 적용(조별 과제)
 
@@ -437,6 +313,130 @@ public interface StockRepository extends CrudRepository<Stock, Long>{
 // 고객 서비스 콘솔을 통해 고객의 예약이 정상적으로 취소 되었는지 확인
 ```
 ![image](https://user-images.githubusercontent.com/63623995/81772123-faa71480-951f-11ea-9d81-03253d199c3d.png)
+
+
+## DDD 의 적용(개인 과제)
+
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 Buy 마이크로 서비스). 
+```
+package bookrental;
+
+import javax.persistence.*;
+
+import bookrental.config.kafka.KafkaProcessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeTypeUtils;
+
+import java.util.List;
+
+@Entity
+@Table(name="Buy_table")
+public class Buy {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    private String bookid;
+    private Long qty;
+
+    @PostPersist
+    public void onPostPersist(){
+        Boughtbook boughtbook = new Boughtbook();
+        boughtbook.setId(this.getId());
+        boughtbook.setBookid(this.getBookid());
+        boughtbook.setQty(this.getQty());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+
+        try {
+            json = objectMapper.writeValueAsString(boughtbook);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON format exception", e);
+        }
+
+
+        KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
+        MessageChannel outputChannel = processor.outboundTopic();
+
+        outputChannel.send(MessageBuilder
+                .withPayload(json)
+                .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
+                .build());
+
+    }
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getBookid() {
+        return bookid;
+    }
+
+    public void setBookid(String bookid) {
+        this.bookid = bookid;
+    }
+    public Long getQty() {
+        return qty;
+    }
+
+    public void setQty(Long qty) {
+        this.qty = qty;
+    }
+}
+```
+- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
+```
+package bookrental;
+
+import org.springframework.data.repository.CrudRepository;
+import java.util.Optional;
+
+public interface StockRepository extends CrudRepository<Stock, Long>{
+    Optional<Stock> findByBookid(String BookId);    # bookid로 찾기 위해 선언
+}
+```
+- 적용 후 REST API 의 테스트 (도서 구매)
+```
+성공 케이스
+// 구매 서비스에서 도서 구매 후  입고
+1. http POST localhost:8084/buys  bookid="14" qty=55
+
+// 재고 서비스에서 입고된 책 내역 확인
+2. http GET localhost:8082/stocks 
+
+// 재고 서비스에서 입고 정보 내역 결과 자동 출력
+아래 이미지 참조
+```
+재고 서비스에 아래와 같이 재고 입고 확인
+
+![r1](https://user-images.githubusercontent.com/53555895/81884702-8463ea00-95d3-11ea-93ea-27178404ef9a.PNG)
+![r2](https://user-images.githubusercontent.com/53555895/81884749-a6f60300-95d3-11ea-88a0-65a00c229590.PNG)
+
+
+- 적용 후 REST API 의 테스트 (도서 구매 검토 요청)
+```
+// 재고가 없는 도서 생성
+1. http POST localhost:8084/buys  bookid="15" qty=0
+
+// 재고가 없는 도서 주문
+2. http POST localhost:8081/reservations bookid="15"  
+
+// 재고 서비스에서 재고 부족한 도서 결과 자동 출력
+아래 이미지 참조
+```
+구매 서비스에 아래와 같이 재고 부족에 따른 구매 검토 요청 확인
+
+![r3](https://user-images.githubusercontent.com/53555895/81885298-086aa180-95d5-11ea-8d4f-664a1b8eac58.PNG)
 
 
 
