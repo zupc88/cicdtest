@@ -250,6 +250,20 @@ public interface StockRepository extends CrudRepository<Stock, Long>{
 - 적용 후 REST API 의 테스트
 ```
 성공 케이스
+// 구매 서비스에서 도서 구매 후  입고
+1. http POST localhost:8084/buys  bookid="14" qty=55
+
+// 재고 서비스에서 입고된 책 내역 확인
+2. http GET localhost:8082/stocks 
+![r1](https://user-images.githubusercontent.com/53555895/81884702-8463ea00-95d3-11ea-93ea-27178404ef9a.PNG)
+
+// 재고 서비스에서 입고 정보 내역 결과 자동 출력
+![r2](https://user-images.githubusercontent.com/53555895/81884749-a6f60300-95d3-11ea-88a0-65a00c229590.PNG)
+```
+
+- 적용 후 REST API 테스트 (조별 과제)
+```
+성공 케이스
 // 재고 서비스 입고
 1. http POST localhost:8082/stocks bookid="1" qty=3
 
