@@ -130,7 +130,7 @@
 
 ## API Gateway 구축
     
-![gateway](https://user-images.githubusercontent.com/53555895/81882853-b0c93780-95ce-11ea-8903-5e29c77331db.PNG)
+![gateway2](https://user-images.githubusercontent.com/53555895/81884079-dc015600-95d1-11ea-96c1-f760c26ee8c3.PNG)
 
     - API Gateway는 Ingress Controller를 사용했음.
     - 외부에 노출되는 IP는 Ingress Controller의 EXternal IP로 제한.
