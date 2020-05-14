@@ -589,6 +589,94 @@ mvn spring-boot:run
 ```
 ![image](https://user-images.githubusercontent.com/63623995/81771166-3be9f500-951d-11ea-87bb-43f9f39b26d4.png)
 
+## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트 (개인 과제)
+
+도서 구매가 완료된 후, 재고 관리는 비동기 방식으로 처리하여, 구매된 도서의 재고 처리가 블로킹 되지 않도록 처리 한다.
+이를 위하여 도서 구매가 완료되면, 바로 구매 내역을 이벤트를 카프카로 송출한다.
+
+ 
+```
+package bookrental;
+
+@Entity
+@Table(name="Reservation_table")
+public class Reservation {
+
+ ...
+    @PostPersist
+    public void onPostPersist(){
+        Boughtbook boughtbook = new Boughtbook();
+        boughtbook.setId(this.getId());
+        boughtbook.setBookid(this.getBookid());
+        boughtbook.setQty(this.getQty());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+
+        try {
+            json = objectMapper.writeValueAsString(boughtbook);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON format exception", e);
+        }
+
+
+        KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
+        MessageChannel outputChannel = processor.outboundTopic();
+
+        outputChannel.send(MessageBuilder
+                .withPayload(json)
+                .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
+                .build());
+
+    }
+
+```
+- 재고관리 서비스에서는 도서 구매 정보를 수신하여 자신의 정책을 처리하도록 PolicyHandler 를 구현한다:
+
+```
+    @StreamListener(KafkaProcessor.INPUT)
+    public void wheneverCanceled_Cancelstock(@Payload Boughtbook boughtbook){
+
+        if(boughtbook.isMe()) {
+            System.out.println("================================================================================");
+            System.out.println("구매팀으로부터 다음 서적이 입고되었습니다. ");
+            System.out.println("BookID :" + boughtbook.getBookid() );
+            System.out.println("수량: " + boughtbook.getQty());
+            System.out.println("================================================================================");
+            Stock stock = new Stock();
+
+            stock.setBookid(boughtbook.getBookid());
+            stock.setQty(boughtbook.getQty());
+            stockRepository.save(stock);
+
+        }
+    }
+
+```
+
+
+구매 시스템은 재고  시스템과 완전히 분리되어있으며, 이벤트 수신에 따라 처리되기 때문에, 재고 시스템이 유지보수로 인해 잠시 내려간 상태라도 예약을 받는데 문제가 없다:
+```
+# 재고 관리 서비스(stock) 를 잠시 내려놓음 (ctrl+c)
+
+# 구매 서비스(buy) : 도서 입고
+1. http POST localhost:8084/buys  bookid="8" qty=28
+
+# 재고 관리 서비스(stock) 기동
+2. cd stockmanagement
+mvn spring-boot:run
+
+# 재고 관리 서비스 : 알람 확인
+================================================================================
+구매팀으로부터 다음 서적이 입고되었습니다. 
+BookID :16
+수량: 28
+================================================================================
+```
+실행 화면 캡처 결과
+
+![r4](https://user-images.githubusercontent.com/53555895/81889460-83848580-95de-11ea-84ca-1f574afcfa1b.PNG)
+
+
 
 
 # 운영
