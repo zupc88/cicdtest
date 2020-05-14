@@ -115,6 +115,9 @@
   : 모든 inter-microservice 트랜잭션이 데이터 일관성의 시점이 크리티컬하지 않은 모든 경우가 대부분이라 판단, Eventual Consistency 를 기본으로 채택함.
     
     
+    
+    
+    
 ## 헥사고날 아키텍처 다이어그램 도출
     
 ![hexa](https://user-images.githubusercontent.com/53555895/81882851-b030a100-95ce-11ea-8b09-c740bb6b9a43.PNG)
