@@ -265,6 +265,23 @@ public interface StockRepository extends CrudRepository<Stock, Long>{
 ![r2](https://user-images.githubusercontent.com/53555895/81884749-a6f60300-95d3-11ea-88a0-65a00c229590.PNG)
 
 
+- 적용 후 REST API 의 테스트 (도서 구매 검토 요청)
+```
+// 재고가 없는 도서 생성
+1. http POST localhost:8084/buys  bookid="15" qty=0
+
+// 재고가 없는 도서 주문
+2. http POST localhost:8081/reservations bookid="15"  
+
+// 재고 서비스에서 재고 부족한 도서 결과 자동 출력
+아래 이미지 참조
+```
+구매 서비스에 아래와 같이 재고 부족에 따른 구매 검토 요청 확인
+
+![r3](https://user-images.githubusercontent.com/53555895/81885298-086aa180-95d5-11ea-8d4f-664a1b8eac58.PNG)
+
+
+
 - 적용 후 REST API 테스트 (조별 과제)
 ```
 성공 케이스
