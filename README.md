@@ -151,13 +151,16 @@ mvn spring-boot:run
 cd customermanagement
 mvn spring-boot:run  
 
+cd buymanagement
+mvn spring-boot:run
+
 ```
+
 
 ## DDD 의 적용
 
-- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 stock 마이크로 서비스). 
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 Buy 마이크로 서비스). 
 
-```
 package bookrental;
 
 import javax.persistence.*;
@@ -165,109 +168,50 @@ import javax.persistence.*;
 import bookrental.config.kafka.KafkaProcessor;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.BeanUtils;
 import org.springframework.messaging.MessageChannel;
 import org.springframework.messaging.MessageHeaders;
 import org.springframework.messaging.support.MessageBuilder;
 import org.springframework.util.MimeTypeUtils;
 
+import java.util.List;
+
 @Entity
-@Table(name="Stock_table")
-public class Stock {
+@Table(name="Buy_table")
+public class Buy {
 
     @Id
     @GeneratedValue(strategy=GenerationType.AUTO)
     private Long id;
     private String bookid;
     private Long qty;
-    private String status;
 
     @PostPersist
     public void onPostPersist(){
-        Incomed incomed = new Incomed();
-        incomed.setId(this.getId());
-        incomed.setBookid(this.getBookid());
-        incomed.setQty(this.getQty());
+        Boughtbook boughtbook = new Boughtbook();
+        boughtbook.setId(this.getId());
+        boughtbook.setBookid(this.getBookid());
+        boughtbook.setQty(this.getQty());
         ObjectMapper objectMapper = new ObjectMapper();
         String json = null;
 
         try {
-            json = objectMapper.writeValueAsString(incomed);
+            json = objectMapper.writeValueAsString(boughtbook);
         } catch (JsonProcessingException e) {
             throw new RuntimeException("JSON format exception", e);
         }
 
+
         KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
         MessageChannel outputChannel = processor.outboundTopic();
+
         outputChannel.send(MessageBuilder
                 .withPayload(json)
                 .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
                 .build());
+
     }
 
-    @PostUpdate
-    public void onPostUpdate(){
-        String status = this.getStatus();
-        
-        if(status.equals("revSucceeded")){
-            Revsuccessed revsuccessed = new Revsuccessed();
-            revsuccessed.setId(this.getId());
-            revsuccessed.setBookid(this.getBookid());
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = null;
-
-            try {
-                json = objectMapper.writeValueAsString(revsuccessed);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("JSON format exception", e);
-            }
-
-            KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
-            MessageChannel outputChannel = processor.outboundTopic();
-            outputChannel.send(MessageBuilder
-                    .withPayload(json)
-                    .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
-                    .build());
-
-        } else if(status.equals("revFailed")){
-            Revfailed revfailed = new Revfailed();
-            revfailed.setId(this.getId());
-            revfailed.setBookid(this.getBookid());
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = null;
-
-            try {
-                json = objectMapper.writeValueAsString(revfailed);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("JSON format exception", e);
-            }
-
-            KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
-            MessageChannel outputChannel = processor.outboundTopic();
-            outputChannel.send(MessageBuilder
-                    .withPayload(json)
-                    .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
-                    .build());
-        } else if(status.equals("revCanceled")) {
-            Revcanceled revcanceled = new Revcanceled();
-            revcanceled.setId(this.getId());
-            revcanceled.setBookid(this.getBookid());
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = null;
-
-            try {
-                json = objectMapper.writeValueAsString(revcanceled);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("JSON format exception", e);
-            }
-            
-            KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
-            MessageChannel outputChannel = processor.outboundTopic();
-            outputChannel.send(MessageBuilder
-                    .withPayload(json)
-                    .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
-                    .build());
-        }
-    }
 
     public Long getId() {
         return id;
@@ -290,15 +234,8 @@ public class Stock {
     public void setQty(Long qty) {
         this.qty = qty;
     }
-
-    public String getStatus() {
-        return status;
-    }
-
-    public void setStatus(String status) {
-        this.status = status;
-    }
 }
+
 
 ```
 - Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
@@ -345,6 +282,7 @@ public interface StockRepository extends CrudRepository<Stock, Long>{
 
 // 예약 서비스에서 고객의 예약 상태가 '실패'임을 확인
 3. http GET localhost:8081/reservations/*
+
 
 취소 케이스
 // 재고 서비스 입고
