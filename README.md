@@ -157,7 +157,7 @@ mvn spring-boot:run
 ```
 
 
-## DDD 의 적용
+## DDD 의 적용(개인 과제)
 
 - 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 Buy 마이크로 서비스). 
 ```
@@ -282,6 +282,96 @@ public interface StockRepository extends CrudRepository<Stock, Long>{
 
 
 
+## DDD 의 적용(조별 과제)
+
+- 각 서비스내에 도출된 핵심 Aggregate Root 객체를 Entity 로 선언하였다: (예시는 Buy 마이크로 서비스). 
+```
+package bookrental;
+
+import javax.persistence.*;
+
+import bookrental.config.kafka.KafkaProcessor;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.beans.BeanUtils;
+import org.springframework.messaging.MessageChannel;
+import org.springframework.messaging.MessageHeaders;
+import org.springframework.messaging.support.MessageBuilder;
+import org.springframework.util.MimeTypeUtils;
+
+import java.util.List;
+
+@Entity
+@Table(name="Buy_table")
+public class Buy {
+
+    @Id
+    @GeneratedValue(strategy=GenerationType.AUTO)
+    private Long id;
+    private String bookid;
+    private Long qty;
+
+    @PostPersist
+    public void onPostPersist(){
+        Boughtbook boughtbook = new Boughtbook();
+        boughtbook.setId(this.getId());
+        boughtbook.setBookid(this.getBookid());
+        boughtbook.setQty(this.getQty());
+        ObjectMapper objectMapper = new ObjectMapper();
+        String json = null;
+
+        try {
+            json = objectMapper.writeValueAsString(boughtbook);
+        } catch (JsonProcessingException e) {
+            throw new RuntimeException("JSON format exception", e);
+        }
+
+
+        KafkaProcessor processor = Application.applicationContext.getBean(KafkaProcessor.class);
+        MessageChannel outputChannel = processor.outboundTopic();
+
+        outputChannel.send(MessageBuilder
+                .withPayload(json)
+                .setHeader(MessageHeaders.CONTENT_TYPE, MimeTypeUtils.APPLICATION_JSON)
+                .build());
+
+    }
+
+
+    public Long getId() {
+        return id;
+    }
+
+    public void setId(Long id) {
+        this.id = id;
+    }
+    public String getBookid() {
+        return bookid;
+    }
+
+    public void setBookid(String bookid) {
+        this.bookid = bookid;
+    }
+    public Long getQty() {
+        return qty;
+    }
+
+    public void setQty(Long qty) {
+        this.qty = qty;
+    }
+}
+```
+- Entity Pattern 과 Repository Pattern 을 적용하여 JPA 를 통하여 다양한 데이터소스 유형 (RDB or NoSQL) 에 대한 별도의 처리가 없도록 데이터 접근 어댑터를 자동 생성하기 위하여 Spring Data REST 의 RestRepository 를 적용하였다
+```
+package bookrental;
+
+import org.springframework.data.repository.CrudRepository;
+import java.util.Optional;
+
+public interface StockRepository extends CrudRepository<Stock, Long>{
+    Optional<Stock> findByBookid(String BookId);    # bookid로 찾기 위해 선언
+}
+```
 - 적용 후 REST API 테스트 (조별 과제)
 ```
 성공 케이스
