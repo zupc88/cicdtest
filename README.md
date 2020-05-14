@@ -52,7 +52,7 @@
 # 분석/설계
 
 ## TO-BE 조직 (Vertically-Aligned)
-![jojic](https://user-images.githubusercontent.com/53555895/81882413-a9555e80-95cd-11ea-8284-66cb7f84d473.PNG)
+![jojic2](https://user-images.githubusercontent.com/53555895/81882673-42847500-95ce-11ea-8b32-17ed3fe30cf5.PNG)
 
 
 
@@ -62,7 +62,7 @@
 
 ### 이벤트 도출
 원할한 토론, 이해를 위해 event-storming 초반은 한글로 작성 및 진행
-![image](https://user-images.githubusercontent.com/63623995/81629770-e9d2a200-943e-11ea-8a95-02c1bae75b1b.png)
+![eventdochul](https://user-images.githubusercontent.com/53555895/81882844-aeff7400-95ce-11ea-8506-0583f5f17222.PNG)
 
 ### 액터, 커맨드 부착하여 읽기 좋게
 ![image](https://user-images.githubusercontent.com/63623995/81630226-fe636a00-943f-11ea-93d5-67f851180950.png)
@@ -74,6 +74,8 @@
 
 ### 바운디드 컨텍스트로 묶기
 ![image](https://user-images.githubusercontent.com/63623995/81630582-fce67180-9440-11ea-9b2d-1e201e0c385a.png)
+![gume](https://user-images.githubusercontent.com/53555895/81882849-b030a100-95ce-11ea-89d9-8b36698b599a.PNG)
+
 
     - 도메인 서열 분리 
         - Core Domain: 예약관리(front), 재고관리 : 없어서는 안될 핵심 서비스이며, 연간 Up-time SLA 수준은 예약관리 99.999% / 재고관리 90% 목표, 배포주기는 예약관리 1주일 1회 미만/ 고객관리 2주 1회 미만으로 함
@@ -83,23 +85,10 @@
 ### 폴리시 부착 및 컨텍스트 매핑은 MSAEZ 도구 사용하여 진행
 모든 언어를 영어로 변환하여, 유비쿼터스 랭귀지로 소스코드 작성 기반 마련
 
-### 1차 완성된 모형
-
-![image](https://user-images.githubusercontent.com/63623995/81631247-631fc400-9442-11ea-91d9-feca89fdb137.png)
-
-- 도서 재고 리스트인 View Model 추가
-- customermanagement 서비스 중 예약 취소 시 알람 누락
-
-### 2차 완성된 모형
-
-![image](https://user-images.githubusercontent.com/63623995/81637021-3e324d80-9450-11ea-92f6-a8a9b61f2950.png)
-
-- 고객이 예약 취소 시 고객 관리 서비스 통해 알람 발송되도록 비동기식 커넥션 추가
-- customermanagement 영역 Event가 무의미 하여, aggregate/event 제거 Needs 발생
 
 ### 완성된 모형
 
-![image](https://user-images.githubusercontent.com/63623995/81639169-2b227c00-9456-11ea-8e93-3a30d4344660.png)
+![map](https://user-images.githubusercontent.com/53555895/81883222-99d71500-95cf-11ea-8dda-f53a7d415eb4.PNG)
 
 - customermanagement에서 이벤트 만 받아서 카톡 알람 처리하는 것으로 완결
 - 각 Aggregte Attribute
@@ -109,28 +98,40 @@
 
 ### 완성본에 대한 기능적/비기능적 요구사항을 커버하는지 검증
 
-1. 재고 관리자가 도서 입고 처리를 한다. (ok)
-2. 고객이 도서 입고 리스트를 보고 도서 예약 신청을 한다.(View 추가로 ok)
-3. 도서 재고가 있으면 예약에 성공한다.(ok)
-4. 도서 재고가 없으면 예약에 실패한다.(ok)
+1. 구매팀 담당자가 도서를 구매하여 재고팀에 넘긴다. (ok)
+2. 재고 관리자가 도서 입고 처리를 한다. (ok)
+3. 고객이 도서 예약 신청을 한다.(ok)
+4. 도서 재고가 있으면 예약에 성공한다.(ok)
+5. 도서 재고가 없으면 구매팀에 구매 검토 요청한다.(ok)
 5. 고객이 도서 예약을 취소한다.(ok)
 6. 예약이 성공되면 카톡 등으로 알람을 보낸다.(ok)
 
 --> 완성된 모델은 모든 기능 요구사항을 커버함.
+
 
 ### 비기능 요구사항에 대한 검증
 
  - 마이크로 서비스를 넘나드는 시나리오에 대한 트랜잭션 처리
   : 모든 inter-microservice 트랜잭션이 데이터 일관성의 시점이 크리티컬하지 않은 모든 경우가 대부분이라 판단, Eventual Consistency 를 기본으로 채택함.
     
-
+    
 ## 헥사고날 아키텍처 다이어그램 도출
     
-![image](https://user-images.githubusercontent.com/63623995/81639426-e0553400-9456-11ea-8346-be1d2d681305.png)
+![hexa](https://user-images.githubusercontent.com/53555895/81882851-b030a100-95ce-11ea-8b09-c740bb6b9a43.PNG)
 
     - Chris Richardson, MSA Patterns 참고하여 Inbound adaptor와 Outbound adaptor를 구분함
     - 호출관계에서 PubSub 표현
     - 서브 도메인과 바운디드 컨텍스트의 분리: 각 팀의 KPI 별로 아래와 같이 관심 구현 스토리지를 나눠가짐
+
+
+
+## API Gateway 구축
+    
+![gateway](https://user-images.githubusercontent.com/53555895/81882853-b0c93780-95ce-11ea-8903-5e29c77331db.PNG)
+
+    - API Gateway는 Ingress Controller를 사용했음.
+    - 외부에 노출되는 IP는 Ingress Controller의 EXternal IP로 제한.
+    - 사용자의 Request URI에 따라 해당 요건을 적절히 라우팅 함.
 
 
 
