@@ -466,7 +466,7 @@ public interface ReservationRepository extends CrudRepository<Reservation, Long>
 }
 ```
 
-## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트
+## 비동기식 호출 / 시간적 디커플링 / 장애격리 / 최종 (Eventual) 일관성 테스트 (조별 과제)
 
 
 도서예약이 이루어진 후에 고객관리시스템으로 이를 알려주는 행위는 동기식이 아니라 비 동기식으로 처리하여 고객관리시스템의 처리를 위하여 도서예약이 블로킹 되지 않도록 처리한다.
